@@ -23,14 +23,22 @@ MongoClient.connect(dbConnectionStr, { useUnifiedTopology: true })
 
 
 
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs') // Has to go before any app.use, app.get, or app.post methods.
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+app.use(bodyParser.json())
 
 app.get('/', (request, response) => {
     console.log("Why you get")
-    response.sendFile(__dirname + '/index.html')
+    db.collection('todo-list').find().toArray() // Gives us all items in our db
+    .then(item => {
+        console.log(item)
+        response.render('index.ejs', {chores: item})
+    })
+    .catch(error => console.log(error))
+    
+    // response.sendFile(__dirname + '/index.html')
 })
 
 app.post('/addItem', (request, response) => {
@@ -38,8 +46,16 @@ app.post('/addItem', (request, response) => {
     db.collection('todo-list').insertOne(request.body)
     .then(result => {
         console.log(result)
+        response.redirect('/')
     })
     .catch(error => console.log(error))
+})
+
+app.put('/chores', (request, response) => {
+    console.log(response.body)
+    db.collection('todo-list').findOutAndUpdate(
+        
+    )
 })
 
 app.listen(process.env.PORT || PORT, ()=> {
